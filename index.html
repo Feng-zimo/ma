@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>口算在线练习</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid #3498db;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select, button, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button.secondary {
+            background-color: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .question {
+            font-size: 24px;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .answer-input {
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            height: 50px;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .result {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .stats {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .custom-preset {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .custom-preset button {
+            width: auto;
+            margin: 0 5px;
+        }
+
+        .preset-name {
+            font-weight: bold;
+        }
+
+        .preset-details {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* 自定义键盘样式 */
+        .custom-keyboard {
+            display: none;
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 10px;
+            user-select: none;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .keyboard-key {
+            flex: 1;
+            height: 50px;
+            margin: 0 4px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .keyboard-key:active {
+            background: #e0e0e0;
+            transform: translateY(2px);
+        }
+
+        .keyboard-key.wide {
+            flex: 2;
+        }
+
+        .keyboard-key.enter {
+            background: #3498db;
+            color: white;
+        }
+
+        .keyboard-key.clear {
+            background: #e74c3c;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .question {
+                font-size: 20px;
+            }
+
+            .answer-input {
+                font-size: 18px;
+            }
+
+            /* 在移动设备上显示自定义键盘 */
+            .custom-keyboard {
+                display: flex;
+                flex-direction: column;
+            }
+        }
+
+        /* 在PC上隐藏自定义键盘 */
+        @media (min-width: 601px) {
+            .custom-keyboard {
+                display: none !important;
+            }
+        }
+
+        .preset-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .no-presets {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>口算在线练习</h1>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="practice">练习</button>
+            <button class="tab" data-tab="customize">自定义题目</button>
+            <button class="tab" data-tab="presets">自定义列表</button>
+            <button class="tab" data-tab="history">历史记录</button>
+        </div>
+
+        <!-- 练习界面 -->
+        <div id="practice" class="tab-content active">
+            <div class="question" id="question">点击"开始练习"生成题目</div>
+            <div class="timer" id="timer">用时: 0秒</div>
+            <input type="number" class="answer-input" id="answer" placeholder="输入答案" inputmode="none">
+            <div class="result" id="result"></div>
+
+            <div class="custom-keyboard" id="custom-keyboard">
+                <div class="keyboard-row">
+                    <div class="keyboard-key" data-key="1">1</div>
+                    <div class="keyboard-key" data-key="2">2</div>
+                    <div class="keyboard-key" data-key="3">3</div>
+                </div>
+                <div class="keyboard-row">
+                    <div class="keyboard-key" data-key="4">4</div>
+                    <div class="keyboard-key" data-key="5">5</div>
+                    <div class="keyboard-key" data-key="6">6</div>
+                </div>
+                <div class="keyboard-row">
+                    <div class="keyboard-key" data-key="7">7</div>
+                    <div class="keyboard-key" data-key="8">8</div>
+                    <div class="keyboard-key" data-key="9">9</div>
+                </div>
+                <div class="keyboard-row">
+                    <div class="keyboard-key" data-key="-">-</div>
+                    <div class="keyboard-key" data-key="0">0</div>
+                    <div class="keyboard-key clear" data-key="clear">清除</div>
+                </div>
+                <div class="keyboard-row">
+                    <div class="keyboard-key enter wide" data-key="enter">确定</div>
+                </div>
+            </div>
+
+            <button id="start-practice">开始练习</button>
+            <button id="next-question" style="display:none;">下一题</button>
+
+            <div class="stats" id="stats" style="display:none;">
+                <h3>练习统计</h3>
+                <p>总题数: <span id="total-questions">0</span></p>
+                <p>正确题数: <span id="correct-questions">0</span></p>
+                <p>正确率: <span id="accuracy">0%</span></p>
+                <p>平均用时: <span id="avg-time">0秒</span></p>
+            </div>
+        </div>
+
+        <!-- 自定义题目界面 -->
+        <div id="customize" class="tab-content">
+            <div class="form-group">
+                <label for="preset-name">自定义名称</label>
+                <input type="text" id="preset-name" placeholder="给这个自定义设置起个名字">
+            </div>
+
+            <div class="form-group">
+                <label for="operation-type">运算类型</label>
+                <select id="operation-type">
+                    <option value="addition">加法</option>
+                    <option value="subtraction">减法</option>
+                    <option value="multiplication">乘法</option>
+                    <option value="division">除法</option>
+                    <option value="mixed">混合运算</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="number-count">数字个数</label>
+                <input type="number" id="number-count" min="2" max="5" value="2">
+            </div>
+
+            <div id="number-ranges">
+                <!-- 动态生成数字范围输入 -->
+            </div>
+
+            <div class="form-group">
+                <label for="question-count">题目数量</label>
+                <input type="number" id="question-count" min="1" max="100" value="10">
+            </div>
+
+            <button id="save-preset">保存自定义设置</button>
+        </div>
+
+        <!-- 自定义列表界面 -->
+        <div id="presets" class="tab-content">
+            <h3>已保存的自定义设置</h3>
+            <div class="preset-list" id="preset-list">
+                <!-- 自定义设置将在这里显示 -->
+            </div>
+            <button id="clear-presets" class="secondary">清除所有自定义设置</button>
+        </div>
+
+        <!-- 历史记录界面 -->
+        <div id="history" class="tab-content">
+            <h3>练习历史</h3>
+            <div id="history-list">
+                <!-- 历史记录将在这里显示 -->
+            </div>
+            <button id="clear-history" class="secondary">清除历史记录</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentQuestion = null;
+        let startTime = null;
+        let timerInterval = null;
+        let elapsedTime = 0;
+        let practiceStats = {
+            total: 0,
+            correct: 0,
+            totalTime: 0
+        };
+        let currentPreset = null;
+        let currentQuestionIndex = 0;
+        let customPresets = [];
+        let practiceHistory = [];
+
+        // DOM 元素
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const questionElement = document.getElementById('question');
+        const timerElement = document.getElementById('timer');
+        const answerInput = document.getElementById('answer');
+        const nextQuestionBtn = document.getElementById('next-question');
+        const startPracticeBtn = document.getElementById('start-practice');
+        const resultElement = document.getElementById('result');
+        const statsElement = document.getElementById('stats');
+        const totalQuestionsElement = document.getElementById('total-questions');
+        const correctQuestionsElement = document.getElementById('correct-questions');
+        const accuracyElement = document.getElementById('accuracy');
+        const avgTimeElement = document.getElementById('avg-time');
+        const operationTypeSelect = document.getElementById('operation-type');
+        const numberCountInput = document.getElementById('number-count');
+        const numberRangesDiv = document.getElementById('number-ranges');
+        const questionCountInput = document.getElementById('question-count');
+        const presetNameInput = document.getElementById('preset-name');
+        const savePresetBtn = document.getElementById('save-preset');
+        const presetListDiv = document.getElementById('preset-list');
+        const clearPresetsBtn = document.getElementById('clear-presets');
+        const historyList = document.getElementById('history-list');
+        const clearHistoryBtn = document.getElementById('clear-history');
+        const customKeyboard = document.getElementById('custom-keyboard');
+        const keyboardKeys = document.querySelectorAll('.keyboard-key');
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载保存的数据
+            loadPracticeStats();
+            loadCustomPresets();
+            loadPracticeHistory();
+
+            // 初始化标签页
+            initTabs();
+
+            // 初始化数字范围输入
+            updateNumberRanges();
+
+            // 事件监听
+            numberCountInput.addEventListener('change', updateNumberRanges);
+            startPracticeBtn.addEventListener('click', startPractice);
+            nextQuestionBtn.addEventListener('click', nextQuestion);
+            savePresetBtn.addEventListener('click', saveCustomPreset);
+            clearPresetsBtn.addEventListener('click', clearPresets);
+            clearHistoryBtn.addEventListener('click', clearHistory);
+
+            // 自定义键盘事件
+            initCustomKeyboard();
+
+            // 支持回车键提交答案
+            answerInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+
+            // 输入框聚焦时在移动设备上显示自定义键盘
+            answerInput.addEventListener('focus', function() {
+                if (isMobileDevice()) {
+                    customKeyboard.style.display = 'flex';
+                }
+            });
+
+            // 点击页面其他地方隐藏键盘
+            document.addEventListener('click', function(e) {
+                if (!answerInput.contains(e.target) && !customKeyboard.contains(e.target)) {
+                    customKeyboard.style.display = 'none';
+                }
+            });
+        });
+
+        // 检测是否为移动设备
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   window.innerWidth <= 600;
+        }
+
+        // 初始化自定义键盘
+        function initCustomKeyboard() {
+            keyboardKeys.forEach(key => {
+                key.addEventListener('click', function() {
+                    const keyValue = this.getAttribute('data-key');
+
+                    if (keyValue === 'enter') {
+                        checkAnswer();
+                    } else if (keyValue === 'clear') {
+                        answerInput.value = '';
+                    } else {
+                        answerInput.value += keyValue;
+                    }
+                });
+            });
+        }
+
+        // 标签页功能
+        function initTabs() {
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+
+                    // 更新活动标签
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    // 显示对应内容
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId) {
+                            content.classList.add('active');
+                        }
+                    });
+
+                    // 如果是自定义列表标签，更新显示
+                    if (tabId === 'presets') {
+                        displayPresets();
+                    }
+
+                    // 如果是历史记录标签，更新显示
+                    if (tabId === 'history') {
+                        displayHistory();
+                    }
+                });
+            });
+        }
+
+        // 更新数字范围输入
+        function updateNumberRanges() {
+            const numberCount = parseInt(numberCountInput.value);
+            numberRangesDiv.innerHTML = '';
+
+            for (let i = 0; i < numberCount; i++) {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                div.innerHTML = `
+                    <label>数字 ${i+1} 范围</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="min-${i}" placeholder="最小值" value="1">
+                        <input type="number" id="max-${i}" placeholder="最大值" value="10">
+                    </div>
+                `;
+                numberRangesDiv.appendChild(div);
+            }
+        }
+
+        // 开始练习
+        function startPractice() {
+            practiceStats = {
+                total: 0,
+                correct: 0,
+                totalTime: 0
+            };
+
+            currentQuestionIndex = 0;
+
+            updateStats();
+            statsElement.style.display = 'block';
+            startPracticeBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'inline-block';
+
+            nextQuestion();
+        }
+
+        // 使用预设开始练习
+        function startPracticeWithPreset(preset) {
+            currentPreset = preset;
+            practiceStats = {
+                total: 0,
+                correct: 0,
+                totalTime: 0
+            };
+
+            currentQuestionIndex = 0;
+
+            updateStats();
+            statsElement.style.display = 'block';
+            startPracticeBtn.style.display = 'none';
+            nextQuestionBtn.style.display = 'inline-block';
+
+            // 切换到练习标签
+            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-tab="practice"]').classList.add('active');
+
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === 'practice') {
+                    content.classList.add('active');
+                }
+            });
+
+            nextQuestion();
+        }
+
+        // 生成下一题
+        function nextQuestion() {
+            // 检查是否完成了所有题目
+            if (currentPreset && currentQuestionIndex >= currentPreset.questionCount) {
+                finishPractice();
+                return;
+            }
+
+            if (currentPreset) {
+                // 使用预设生成题目
+                currentQuestion = generateQuestionFromPreset(currentPreset);
+            } else {
+                // 生成随机题目
+                currentQuestion = generateQuestion();
+            }
+
+            questionElement.textContent = currentQuestion.text;
+            answerInput.value = '';
+            answerInput.focus();
+            resultElement.textContent = '';
+            resultElement.className = 'result';
+
+            // 开始计时
+            startTimer();
+
+            currentQuestionIndex++;
+        }
+
+        // 从预设生成题目
+        function generateQuestionFromPreset(preset) {
+            const numbers = [];
+
+            // 生成数字
+            for (let i = 0; i < preset.numberCount; i++) {
+                const min = preset.numberRanges[i].min;
+                const max = preset.numberRanges[i].max;
+                const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                numbers.push(num);
+            }
+
+            let text = '';
+            let answer = 0;
+
+            switch(preset.operationType) {
+                case 'addition':
+                    text = numbers.join(' + ');
+                    answer = numbers.reduce((sum, num) => sum + num, 0);
+                    break;
+                case 'subtraction':
+                    text = numbers.join(' - ');
+                    answer = numbers.reduce((diff, num, index) =>
+                        index === 0 ? num : diff - num);
+                    break;
+                case 'multiplication':
+                    text = numbers.join(' × ');
+                    answer = numbers.reduce((product, num) => product * num, 1);
+                    break;
+                case 'division':
+                    // 确保除法结果是整数
+                    let product = numbers.reduce((p, num) => p * num, 1);
+                    let divisor = numbers[numbers.length - 1];
+                    let dividend = product / divisor;
+
+                    text = `${product} ÷ ${divisor}`;
+                    answer = dividend;
+                    numbers[0] = dividend;
+                    numbers[1] = divisor;
+                    break;
+                case 'mixed':
+                    // 混合运算
+                    const operations = ['+', '-', '×', '÷'];
+                    text = numbers[0].toString();
+                    answer = numbers[0];
+
+                    for (let i = 1; i < numbers.length; i++) {
+                        const op = operations[Math.floor(Math.random() * operations.length)];
+                        text += ` ${op} ${numbers[i]}`;
+
+                        switch(op) {
+                            case '+': answer += numbers[i]; break;
+                            case '-': answer -= numbers[i]; break;
+                            case '×': answer *= numbers[i]; break;
+                            case '÷': answer /= numbers[i]; break;
+                        }
+                    }
+                    break;
+            }
+
+            return {
+                text: text + ' = ?',
+                answer: answer,
+                numbers: numbers
+            };
+        }
+
+        // 生成题目
+        function generateQuestion() {
+            const operationType = operationTypeSelect.value;
+            const numberCount = parseInt(numberCountInput.value);
+            const numbers = [];
+
+            // 生成数字
+            for (let i = 0; i < numberCount; i++) {
+                const min = parseInt(document.getElementById(`min-${i}`).value) || 1;
+                const max = parseInt(document.getElementById(`max-${i}`).value) || 10;
+                const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                numbers.push(num);
+            }
+
+            let text = '';
+            let answer = 0;
+
+            switch(operationType) {
+                case 'addition':
+                    text = numbers.join(' + ');
+                    answer = numbers.reduce((sum, num) => sum + num, 0);
+                    break;
+                case 'subtraction':
+                    text = numbers.join(' - ');
+                    answer = numbers.reduce((diff, num, index) =>
+                        index === 0 ? num : diff - num);
+                    break;
+                case 'multiplication':
+                    text = numbers.join(' × ');
+                    answer = numbers.reduce((product, num) => product * num, 1);
+                    break;
+                case 'division':
+                    // 确保除法结果是整数
+                    let product = numbers.reduce((p, num) => p * num, 1);
+                    let divisor = numbers[numbers.length - 1];
+                    let dividend = product / divisor;
+
+                    text = `${product} ÷ ${divisor}`;
+                    answer = dividend;
+                    numbers[0] = dividend;
+                    numbers[1] = divisor;
+                    break;
+                case 'mixed':
+                    // 混合运算
+                    const operations = ['+', '-', '×', '÷'];
+                    text = numbers[0].toString();
+                    answer = numbers[0];
+
+                    for (let i = 1; i < numbers.length; i++) {
+                        const op = operations[Math.floor(Math.random() * operations.length)];
+                        text += ` ${op} ${numbers[i]}`;
+
+                        switch(op) {
+                            case '+': answer += numbers[i]; break;
+                            case '-': answer -= numbers[i]; break;
+                            case '×': answer *= numbers[i]; break;
+                            case '÷': answer /= numbers[i]; break;
+                        }
+                    }
+                    break;
+            }
+
+            return {
+                text: text + ' = ?',
+                answer: answer,
+                numbers: numbers
+            };
+        }
+
+        // 开始计时
+        function startTimer() {
+            startTime = new Date();
+            elapsedTime = 0;
+            timerInterval = setInterval(() => {
+                elapsedTime = Math.floor((new Date() - startTime) / 1000);
+                timerElement.textContent = `用时: ${elapsedTime}秒`;
+            }, 1000);
+        }
+
+        // 停止计时
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        // 检查答案
+        function checkAnswer() {
+            if (!currentQuestion) return;
+
+            stopTimer();
+            const userAnswer = parseFloat(answerInput.value);
+            const correctAnswer = currentQuestion.answer;
+            const isCorrect = Math.abs(userAnswer - correctAnswer) < 0.001; // 处理浮点数精度
+
+            // 更新统计
+            practiceStats.total++;
+            practiceStats.totalTime += elapsedTime;
+
+            if (isCorrect) {
+                practiceStats.correct++;
+                resultElement.textContent = '正确！';
+                resultElement.className = 'result correct';
+            } else {
+                resultElement.textContent = `错误！正确答案是: ${correctAnswer}`;
+                resultElement.className = 'result incorrect';
+            }
+
+            // 保存答题记录
+            saveAnswerRecord(currentQuestion, userAnswer, isCorrect, elapsedTime);
+
+            updateStats();
+
+            // 自动切换到下一题
+            setTimeout(() => {
+                nextQuestion();
+            }, 1500);
+        }
+
+        // 完成练习
+        function finishPractice() {
+            stopTimer();
+            questionElement.textContent = '练习完成！点击"开始练习"重新开始';
+            answerInput.value = '';
+            resultElement.textContent = '';
+            resultElement.className = 'result';
+
+            startPracticeBtn.style.display = 'inline-block';
+            nextQuestionBtn.style.display = 'none';
+
+            // 显示统计信息
+            updateStats();
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            totalQuestionsElement.textContent = practiceStats.total;
+            correctQuestionsElement.textContent = practiceStats.correct;
+
+            const accuracy = practiceStats.total > 0 ?
+                (practiceStats.correct / practiceStats.total * 100).toFixed(1) : 0;
+            accuracyElement.textContent = `${accuracy}%`;
+
+            const avgTime = practiceStats.total > 0 ?
+                (practiceStats.totalTime / practiceStats.total).toFixed(1) : 0;
+            avgTimeElement.textContent = `${avgTime}秒`;
+
+            // 保存统计信息
+            savePracticeStats();
+        }
+
+        // 保存自定义预设
+        function saveCustomPreset() {
+            const name = presetNameInput.value.trim();
+            if (!name) {
+                alert('请输入自定义名称');
+                return;
+            }
+
+            const operationType = operationTypeSelect.value;
+            const numberCount = parseInt(numberCountInput.value);
+            const questionCount = parseInt(questionCountInput.value);
+
+            // 收集数字范围
+            const numberRanges = [];
+            for (let i = 0; i < numberCount; i++) {
+                const min = parseInt(document.getElementById(`min-${i}`).value) || 1;
+                const max = parseInt(document.getElementById(`max-${i}`).value) || 10;
+                numberRanges.push({ min, max });
+            }
+
+            const preset = {
+                id: Date.now().toString(),
+                name,
+                operationType,
+                numberCount,
+                questionCount,
+                numberRanges,
+                createdAt: new Date().toISOString()
+            };
+
+            // 添加到预设列表
+            customPresets.push(preset);
+
+            // 保存到本地存储
+            localStorage.setItem('customPresets', JSON.stringify(customPresets));
+
+            // 清空表单
+            presetNameInput.value = '';
+
+            alert(`已保存自定义设置: ${name}`);
+
+            // 切换到预设列表
+            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-tab="presets"]').classList.add('active');
+
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === 'presets') {
+                    content.classList.add('active');
+                }
+            });
+
+            displayPresets();
+        }
+
+        // 显示预设列表
+        function displayPresets() {
+            presetListDiv.innerHTML = '';
+
+            if (customPresets.length === 0) {
+                presetListDiv.innerHTML = '<div class="no-presets">暂无自定义设置</div>';
+                return;
+            }
+
+            customPresets.forEach(preset => {
+                const presetElement = document.createElement('div');
+                presetElement.className = 'custom-preset';
+
+                let operationText = '';
+                switch(preset.operationType) {
+                    case 'addition': operationText = '加法'; break;
+                    case 'subtraction': operationText = '减法'; break;
+                    case 'multiplication': operationText = '乘法'; break;
+                    case 'division': operationText = '除法'; break;
+                    case 'mixed': operationText = '混合运算'; break;
+                }
+
+                presetElement.innerHTML = `
+                    <div>
+                        <div class="preset-name">${preset.name}</div>
+                        <div class="preset-details">${operationText} | ${preset.numberCount}个数字 | ${preset.questionCount}题</div>
+                    </div>
+                    <div>
+                        <button class="secondary" data-preset-id="${preset.id}">使用</button>
+                        <button class="secondary" data-preset-id="${preset.id}" data-action="delete">删除</button>
+                    </div>
+                `;
+
+                presetListDiv.appendChild(presetElement);
+            });
+
+            // 添加事件监听
+            document.querySelectorAll('[data-preset-id]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const presetId = this.getAttribute('data-preset-id');
+                    const action = this.getAttribute('data-action');
+
+                    if (action === 'delete') {
+                        deletePreset(presetId);
+                    } else {
+                        usePreset(presetId);
+                    }
+                });
+            });
+        }
+
+        // 使用预设
+        function usePreset(presetId) {
+            const preset = customPresets.find(p => p.id === presetId);
+            if (preset) {
+                startPracticeWithPreset(preset);
+            }
+        }
+
+        // 删除预设
+        function deletePreset(presetId) {
+            if (confirm('确定要删除这个自定义设置吗？')) {
+                customPresets = customPresets.filter(p => p.id !== presetId);
+                localStorage.setItem('customPresets', JSON.stringify(customPresets));
+                displayPresets();
+            }
+        }
+
+        // 清除所有预设
+        function clearPresets() {
+            if (confirm('确定要清除所有自定义设置吗？')) {
+                customPresets = [];
+                localStorage.removeItem('customPresets');
+                displayPresets();
+            }
+        }
+
+        // 保存答题记录
+        function saveAnswerRecord(question, userAnswer, isCorrect, time) {
+            const record = {
+                question: question.text,
+                userAnswer: userAnswer,
+                correctAnswer: question.answer,
+                isCorrect: isCorrect,
+                time: time,
+                timestamp: new Date().toISOString()
+            };
+
+            practiceHistory.push(record);
+            localStorage.setItem('practiceHistory', JSON.stringify(practiceHistory));
+        }
+
+        // 显示历史记录
+        function displayHistory() {
+            historyList.innerHTML = '';
+
+            if (practiceHistory.length === 0) {
+                historyList.innerHTML = '<p>暂无练习记录</p>';
+                return;
+            }
+
+            practiceHistory.forEach((record, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <p><strong>题目:</strong> ${record.question}</p>
+                    <p><strong>你的答案:</strong> ${record.userAnswer}
+                    <span style="color: ${record.isCorrect ? 'green' : 'red'}">(${record.isCorrect ? '正确' : '错误'})</span></p>
+                    <p><strong>正确答案:</strong> ${record.correctAnswer}</p>
+                    <p><strong>用时:</strong> ${record.time}秒</p>
+                    <p><strong>时间:</strong> ${new Date(record.timestamp).toLocaleString()}</p>
+                `;
+                historyList.appendChild(item);
+            });
+        }
+
+        // 清除历史记录
+        function clearHistory() {
+            if (confirm('确定要清除所有历史记录吗？')) {
+                practiceHistory = [];
+                localStorage.removeItem('practiceHistory');
+                displayHistory();
+            }
+        }
+
+        // 从本地存储加载数据
+        function loadPracticeStats() {
+            const saved = localStorage.getItem('practiceStats');
+            if (saved) {
+                practiceStats = JSON.parse(saved);
+                updateStats();
+            }
+        }
+
+        function loadCustomPresets() {
+            const saved = localStorage.getItem('customPresets');
+            if (saved) {
+                customPresets = JSON.parse(saved);
+                displayPresets();
+            }
+        }
+
+        function loadPracticeHistory() {
+            const saved = localStorage.getItem('practiceHistory');
+            if (saved) {
+                practiceHistory = JSON.parse(saved);
+                displayHistory();
+            }
+        }
+
+        // 保存统计信息到本地存储
+        function savePracticeStats() {
+            localStorage.setItem('practiceStats', JSON.stringify(practiceStats));
+        }
+    </script>
+</body>
+</html>
